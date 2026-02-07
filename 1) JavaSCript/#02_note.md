@@ -1,33 +1,33 @@
 # JavaScript Execution Context — Internal Flow Documentation
 
-This document provides a comprehensive breakdown of JavaScript's Execution Context, including its internal structure, memory model, and variable resolution process.
+এই document-টি JavaScript-এর Execution Context-এর একটি বিস্তারিত breakdown দেয়, যার মধ্যে আছে এর internal structure, memory model এবং variable resolution process।
 
 ## Topics Covered
 
-- **Execution Context**: The environment in which JavaScript code is evaluated and executed
-- **Internal Structure**: LexicalEnvironment, VariableEnvironment, and thisBinding
-- **EnvironmentRecord**: Memory storage for variable bindings
-- **Phases of Execution**: Creation Phase and Execution Phase
-- **Scope Chain**: Variable lookup and identifier resolution
-- **Function Storage**: Memory allocation and references
+- **Execution Context**: যে environment-এ JavaScript code evaluate এবং execute হয়
+- **Internal Structure**: LexicalEnvironment, VariableEnvironment, এবং thisBinding
+- **EnvironmentRecord**: Variable bindings-এর জন্য memory storage
+- **Phases of Execution**: Creation Phase এবং Execution Phase
+- **Scope Chain**: Variable lookup এবং identifier resolution
+- **Function Storage**: Memory allocation এবং references
 - **Stack vs Heap**: Temporary vs persistent memory
 - **Closures**: Lexical environment retention
-- **Garbage Collection**: Memory release based on reachability
-- **Golden Rules**: Mental models for JavaScript internals
+- **Garbage Collection**: Reachability-এর উপর ভিত্তি করে memory release
+- **Golden Rules**: JavaScript internals-এর mental models
 
 ---
 
 ## 1. What is Execution Context?
 
-**Execution Context** = environment where JS executes code
+**Execution Context** = যে environment-এ JS code execute হয়
 
-It manages:
+এটা manage করে:
 
 - variables
 - functions
 - scope info
 - `this` binding
-- memory for that execution
+- সেই execution-এর জন্য memory
 
 ---
 
@@ -44,7 +44,7 @@ ExecutionContext
 
 ## 3. LexicalEnvironment
 
-**Stores:**
+**যা store করে:**
 
 - `let`
 - `const`
@@ -56,12 +56,12 @@ ExecutionContext
 
 ```javascript
 LexicalEnvironment {
-  EnvironmentRecord,    // variables stored here
+  EnvironmentRecord,    // variables এখানে stored
   outer                 // parent reference (scope chain)
 }
 ```
 
-**Note:** Parameters behave like `let`, not `var` — so they live here! .
+**Note:** Parameters `let`-এর মতো behave করে, `var`-এর মতো না — তাই এরা এখানে থাকে!
 
 ---
 
@@ -77,7 +77,7 @@ LexicalEnvironment {
 }
 ```
 
-Each binding internally stores:
+প্রতিটা binding internally store করে:
 
 ```javascript
 {
@@ -92,7 +92,7 @@ Each binding internally stores:
 
 ## 5. VariableEnvironment
 
-**Stores:**
+**যা store করে:**
 
 - `var`
 - function declarations
@@ -105,15 +105,15 @@ VariableEnvironment {
 }
 ```
 
-**Note:** No `outer` here; chaining is via LexicalEnvironment only.
+**Note:** এখানে কোনো `outer` নেই; chaining শুধুমাত্র LexicalEnvironment-এর মাধ্যমে হয়।
 
 ---
 
 ## 6. thisBinding
 
-**Stores:** the value of `this`
+**যা store করে:** `this`-এর value
 
-**Depends on call type:**
+**Call type-এর উপর depend করে:**
 
 | Call Type      | `this` Value                |
 | -------------- | ----------------------------- |
@@ -128,14 +128,14 @@ VariableEnvironment {
 
 ## 7. Creation Phase vs Execution Phase
 
-Every context runs in **two passes**:
+প্রতিটা context **two passes**-এ run হয়:
 
 ### Creation Phase (Memory Setup)
 
-- Allocates memory
-- Registers declarations
-- Sets `this`
-- Builds scope chain
+- Memory allocate করে
+- Declarations register করে
+- `this` set করে
+- Scope chain build করে
 
 | Type                 | Stored as            |
 | -------------------- | -------------------- |
@@ -145,20 +145,20 @@ Every context runs in **two passes**:
 | parameters           | argument values      |
 | this                 | binding created      |
 
-**NOT created here:** arrow functions, function expressions, `new Function()`
+**এখানে create হয় না:** arrow functions, function expressions, `new Function()`
 
 ### Execution Phase
 
-- Assigns values
-- Runs code line-by-line
-- Evaluates expressions
-- Calls functions
+- Values assign করে
+- Line-by-line code run করে
+- Expressions evaluate করে
+- Functions call করে
 
 ---
 
 ## 8. Scope Chain
 
-Linked list of Lexical Environments
+Lexical Environments-এর Linked list
 
 ```
 current → parent → parent → global → null
@@ -190,13 +190,13 @@ sum(10, 20)
 
 ### What Beginners Think
 
-Many think: `parameters = special thing` ❌
+অনেকে মনে করে: `parameters = special thing` ❌
 
 ### Reality
 
-Parameters are just **local variables automatically created by JS**
+Parameters হলো শুধুই **JS দ্বারা automatically create হওয়া local variables**
 
-Engine treats them like:
+Engine এদের এভাবে treat করে:
 
 ```javascript
 let a = 10
@@ -205,7 +205,7 @@ let b = 20
 
 ### Creation Phase Step-by-Step
 
-When `sum(10, 20)` is called:
+যখন `sum(10, 20)` call হয়:
 
 **Step 1 — New Execution Context created**
 
@@ -217,7 +217,7 @@ LexicalEnvironment {
 
 **Step 2 — Parameters stored**
 
-Engine inserts:
+Engine insert করে:
 
 ```javascript
 a → 10
@@ -235,12 +235,12 @@ EnvironmentRecord {
 
 ### Important Behavior
 
-Because they behave like `let`:
+যেহেতু এরা `let`-এর মতো behave করে:
 
 - ✅ block scoped
-- ✅ not hoisted like var
-- ✅ separate from outer scope
-- ✅ shadow outer variables
+- ✅ var-এর মতো hoisted না
+- ✅ outer scope থেকে separate
+- ✅ outer variables-কে shadow করে
 
 ### Example: Parameter Shadowing
 
@@ -254,7 +254,7 @@ function test(a) {
 test(5)  // Output: 5
 ```
 
-Why? Because parameter `a` shadows outer `a`
+কেন? কারণ parameter `a` outer `a`-কে shadow করে
 
 Same as:
 
@@ -266,9 +266,9 @@ function test() {
 
 ### Rule
 
-Parameters live in **LexicalEnvironment**, not VariableEnvironment
+Parameters **LexicalEnvironment**-এ থাকে, VariableEnvironment-এ না
 
-Because: they are block scoped like `let`
+কারণ: এরা `let`-এর মতো block scoped
 
 ---
 
@@ -286,11 +286,11 @@ try {
 
 ### Reality
 
-JS creates a **special temporary LexicalEnvironment for catch block**
+JS **catch block-এর জন্য একটা special temporary LexicalEnvironment create করে**
 
 ### Step-by-Step Internally
 
-When catch runs, engine creates:
+যখন catch run হয়, engine create করে:
 
 ```javascript
 LexicalEnvironment_catch {
@@ -303,10 +303,10 @@ LexicalEnvironment_catch {
 
 ### Why Special Environment?
 
-Catch variable must:
+Catch variable অবশ্যই:
 
-- ✅ only exist inside catch
-- ❌ not leak outside
+- ✅ শুধুমাত্র catch-এর ভেতরে exist করবে
+- ❌ বাইরে leak হবে না
 
 ### Example: Scope Isolation
 
@@ -320,14 +320,14 @@ try {
 console.log(err)    // ❌ ReferenceError
 ```
 
-Because: `err` is destroyed after block
+কারণ: block-এর পরে `err` destroy হয়ে যায়
 
 ### How Engine Ensures This
 
-By:
+এভাবে:
 
-- Creating a NEW LexicalEnvironment only for catch
-- Deleting it after block ends
+- শুধুমাত্র catch-এর জন্য একটা NEW LexicalEnvironment create করে
+- Block end হওয়ার পর সেটা delete করে
 
 ### Visual
 
@@ -338,7 +338,7 @@ Catch LexicalEnv (temporary)
   err → "error"
 ```
 
-After block:
+Block-এর পরে:
 
 ```
 Catch LexicalEnv destroyed
@@ -346,15 +346,15 @@ Catch LexicalEnv destroyed
 
 ### Why NOT VariableEnvironment?
 
-Because:
+কারণ:
 
-VariableEnvironment is for: `var` + function declarations
+VariableEnvironment হলো: `var` + function declarations-এর জন্য
 
-And: `var` is function-scoped
+এবং: `var` হলো function-scoped
 
-But: parameters + catch must be block-scoped
+কিন্তু: parameters + catch অবশ্যই block-scoped হতে হবে
 
-So: **LexicalEnvironment**
+তাই: **LexicalEnvironment**
 
 ---
 
@@ -372,29 +372,29 @@ So: **LexicalEnvironment**
 
 ## 12. Super Simple Mental Model
 
-Think:
+এভাবে চিন্তা করো:
 
 ```
 LexicalEnvironment  = modern variables
 VariableEnvironment = old var stuff
 ```
 
-So: parameters & catch behave modern → go Lexical
+তাই: parameters & catch modern-এর মতো behave করে → Lexical-এ যায়
 
 ---
 
 ## 13. Function Storage
 
-When declaring:
+Declaring-এর সময়:
 
 ```javascript
 function sum(a, b) { return a + b }
 ```
 
 - **EnvironmentRecord:** `sum` → reference (address)
-- **Heap:** stores function object (`[[Code]]`, `[[ParamNames]]`, `[[Scope]]`)
-- Only reference stored in scope; body is on heap
-- Parameters created only when function is called
+- **Heap:** function object store করে (`[[Code]]`, `[[ParamNames]]`, `[[Scope]]`)
+- শুধুমাত্র reference scope-এ stored; body heap-এ থাকে
+- Parameters শুধুমাত্র function call হলে create হয়
 
 ---
 
@@ -402,19 +402,19 @@ function sum(a, b) { return a + b }
 
 ### Stack (Temporary)
 
-- Stores execution contexts (call order)
-- Destroyed when function returns
+- Execution contexts store করে (call order)
+- Function return করলে destroy হয়
 
 ### Heap (Persistent)
 
-- Stores variables, objects, functions, lexical environments
-- Not destroyed automatically
+- Variables, objects, functions, lexical environments store করে
+- Automatically destroy হয় না
 
 ---
 
 ## 15. Closures
 
-**Definition:** Closure = function + reference to its outer lexical environment
+**Definition:** Closure = function + তার outer lexical environment-এর reference
 
 ### Example
 
@@ -429,14 +429,14 @@ const fn = outer()
 fn()  // prints 0
 ```
 
-`inner` keeps reference to `outer`'s environment, so `count` stays alive.
+`inner` `outer`-এর environment-এর reference রাখে, তাই `count` alive থাকে।
 
 ---
 
 ## 16. Garbage Collection & Closures
 
-- Memory is deleted **only when no references remain** (reachability rule)
-- Closures keep environments alive as long as they're referenced
+- Memory delete হয় **শুধুমাত্র যখন কোনো references থাকে না** (reachability rule)
+- Closures environments-কে alive রাখে যতক্ষণ তাদের reference থাকে
 
 ### Example
 
@@ -447,8 +447,8 @@ function outer() {
     console.log(x) 
   }
 }
-const fn = outer()   // x is kept alive
-fn = null            // now x can be garbage collected
+const fn = outer()   // x alive থাকে
+fn = null            // এখন x garbage collected হতে পারে
 ```
 
 ---
@@ -514,29 +514,29 @@ ExecutionContext
 └─ this
 
 Stack → execution only
-Heap → variables live here
-Closures → keep heap alive
+Heap → variables এখানে থাকে
+Closures → heap-কে alive রাখে
 ```
 
 ---
 
 ## 19. Golden Rules
 
-- ✅ Each function call = new Execution Context
-- ✅ Creation happens before execution
-- ✅ Scope chain uses LexicalEnvironment.outer
-- ✅ let/const have TDZ
-- ✅ parameters behave like let
-- ✅ functions stored on heap
-- ✅ stack frames die after return
-- ✅ closures keep lexical environments alive
-- ✅ memory deleted only when no references
+- ✅ প্রতিটা function call = new Execution Context
+- ✅ Execution-এর আগে Creation হয়
+- ✅ Scope chain LexicalEnvironment.outer use করে
+- ✅ let/const-এর TDZ আছে
+- ✅ parameters let-এর মতো behave করে
+- ✅ functions heap-এ stored
+- ✅ stack frames return-এর পর die করে
+- ✅ closures lexical environments-কে alive রাখে
+- ✅ memory delete হয় শুধুমাত্র যখন কোনো references নেই
 
 ---
 
 ## 20. One-Line Summary
 
-JavaScript stores variables in heap-based lexical environments, resolves them via the scope chain, and closures keep those environments alive until no references remain.
+JavaScript variables heap-based lexical environments-এ store করে, scope chain-এর মাধ্যমে resolve করে, এবং closures সেই environments-কে alive রাখে যতক্ষণ না কোনো references থাকে।
 
 ---
 
@@ -553,19 +553,19 @@ var a = 10
 console.log(this)  // → window
 ```
 
-Scripts run directly in **global scope**.
+Scripts directly **global scope**-এ run হয়।
 
 ### Node.js Behavior
 
-Node **wraps every file** in a function before execution:
+Node **প্রতিটা file-কে একটা function-এ wrap করে** execution-এর আগে:
 
 ```javascript
 (function (exports, require, module, __filename, __dirname) {
-    // your entire file executes here
+    // তোমার entire file এখানে execute হয়
 })
 ```
 
-**Result:** Your code is NOT in global scope — it's inside a function.
+**Result:** তোমার code global scope-এ না — এটা একটা function-এর ভেতরে।
 
 ---
 
@@ -581,12 +581,12 @@ console.log(this)
 {}  // ← module.exports
 ```
 
-**NOT** `global` ❌
+**`global` না** ❌
 
 ### Why?
 
 ```javascript
-this === module.exports  // ✅ Always true at top-level
+this === module.exports  // ✅ Top-level-এ always true
 ```
 
 ---
@@ -640,10 +640,10 @@ const p = new Person("Raj")  // → new empty object {}
 
 **Steps:**
 
-1. Create empty object `{}`
-2. Bind `this` to that object
-3. Execute function body
-4. Return the object
+1. Empty object `{}` create করে
+2. `this`-কে সেই object-এ bind করে
+3. Function body execute করে
+4. Object return করে
 
 ### Case 5: Arrow Functions
 
@@ -656,7 +656,7 @@ const obj = {
 obj.test()  // → {}  (NOT obj)
 ```
 
-**Why?** Arrows have **no own `this`** — they inherit from parent scope (module wrapper).
+**Why?** Arrows-এর **own `this` নেই** — এরা parent scope (module wrapper) থেকে inherit করে।
 
 ### Case 6: setTimeout / Callbacks
 

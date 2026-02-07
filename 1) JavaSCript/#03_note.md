@@ -1,61 +1,51 @@
 # 📘 JavaScript Function Object — Engine Level Understanding
 
-> **"A function is not code. A function is a reusable executable object."**
+> **"একটা function কোড না। একটা function হলো একটা reusable executable object।"**
 
-This is about **architecture**, not syntax.  
-If this is weak → `this`, `bind`, `new`, closures will NEVER fully click.
+এটা **architecture** নিয়ে, syntax না।
+এটা weak থাকলে → `this`, `bind`, `new`, closures কখনোই পুরোপুরি বুঝবে না।
 
 ---
 
 ## 📑 Table of Contents
 
-| Part | Topic |
-|------|-------|
-| **Part 1** | Foundation — Why This Matters |
-| **Part 2** | Function Object — What It Really Is |
-| **Part 3** | Internal Slots — Engine View |
-| **Part 4** | `this` — The Runtime Mystery |
-| **Part 5** | Function Object vs Execution Context |
-| **Part 6** | Complete Flow — AST to Execution |
+| Part             | Topic                                            |
+| ---------------- | ------------------------------------------------ |
+| **Part 1** | Foundation — Why This Matters                   |
+| **Part 2** | Function Object — What It Really Is             |
+| **Part 3** | Internal Slots — Engine View                    |
+| **Part 4** | `this` — The Runtime Mystery                  |
+| **Part 5** | Function Object vs Execution Context             |
+| **Part 6** | Complete Flow — AST to Execution                |
 | **Part 7** | `this` SET vs BOUND — The Critical Difference |
-| **Part 8** | Practice & Checkpoint |
-
----
+| **Part 8** | Practice & Checkpoint                            |
 
 <br>
 
 # Part 1: Foundation — Why This Matters
 
----
-
 ## ❌ Common Misconceptions
 
-Most JavaScript developers fail because they believe:
+বেশিরভাগ JavaScript developer fail করে কারণ তারা বিশ্বাস করে:
 
-- functions remember things
-- `this` belongs to the function
-- functions are "just code blocks"
+- function জিনিস মনে রাখে
+- `this` function-এর অংশ
+- function "শুধুই code block"
 
-**All of that is wrong.**
-
----
+**এই সবগুলোই ভুল।**
 
 ## ✅ What You Will Actually Learn
 
-- What the engine actually creates
-- What exists **before execution**
-- What exists **only during execution**
-- Why `this` can NEVER be inside a function
-- Why `bind` MUST create a new function
-- Why `call/apply` do NOT
-
----
+- Engine আসলে কী তৈরি করে
+- **execution-এর আগে** কী থাকে
+- **শুধুমাত্র execution-এর সময়** কী থাকে
+- কেন `this` কখনোই function-এর ভেতরে থাকতে পারে না
+- কেন `bind` অবশ্যই নতুন function তৈরি করে
+- কেন `call/apply` করে না
 
 <br>
 
 # Part 2: Function Object — What It Really Is
-
----
 
 ## 2.1 When JS Sees a Function — What Really Happens
 
@@ -68,40 +58,41 @@ function foo(a, b) {
 ```
 
 ### ❌ Beginner mental model:
-> "JS stores this code and runs it later"
+
+> "JS এই code store করে রাখে এবং পরে run করে"
 
 ### ✅ Engine mental model:
-> **"I need to create a FUNCTION OBJECT."**
 
-The engine does NOT think in terms of "code blocks".  
-It thinks in terms of **objects and execution behavior**.
+> **"আমাকে একটা FUNCTION OBJECT তৈরি করতে হবে।"**
 
----
+Engine "code blocks"-এর ভাষায় চিন্তা করে না।
+সে চিন্তা করে **objects এবং execution behavior**-এর ভাষায়।
 
 ## 2.2 A Function is NOT Code
 
-A function is an **OBJECT in memory**.
+একটা function হলো **memory-তে একটা OBJECT**।
 
-Just like:
+ঠিক যেমন:
+
 ```js
 const obj = {}
 ```
-creates an object,
+
+একটা object তৈরি করে,
 
 ```js
 function foo() {}
 ```
-also creates an object — but a **special executable object**.
 
----
+এটাও একটা object তৈরি করে — কিন্তু একটা **special executable object**।
 
 ## 2.3 Where Does the Function Object Live?
 
 👉 **HEAP MEMORY**
 
-- ❌ Not stack
-- ❌ Not execution context
-- ❌ Not inside variables
+- ❌ stack-এ না
+- ❌ execution context-এ না
+- ❌ variable-এর ভেতরে না
 
 ### Conceptually:
 
@@ -110,37 +101,32 @@ Heap:
   foo ───► FunctionObject
 ```
 
-📌 This happens during **parsing / compilation**  
-📌 **Before any code runs**
-
----
+📌 এটা হয় **parsing / compilation**-এর সময়
+📌 **কোনো code run হওয়ার আগেই**
 
 ## 2.4 When Function Objects Are Created (VERY IMPORTANT)
 
-Function objects are created:
+Function objects তৈরি হয়:
 
-| ✅ When | ❌ NOT When |
-|---------|-------------|
-| During **parsing / compilation** | During execution |
-| | During execution-context creation |
+| ✅ কখন                                     | ❌ কখন না                        |
+| --------------------------------------------- | ------------------------------------- |
+| **parsing / compilation**-এর সময় | execution-এর সময়               |
+|                                               | execution-context তৈরির সময় |
 
-That means:
-- Function exists **before** it is ever called
-- Execution context **uses** the function — it does not create it
+এর মানে:
 
----
+- Function থাকে **call হওয়ার আগেই**
+- Execution context function-কে **ব্যবহার করে** — সে তৈরি করে না
 
 <br>
 
 # Part 3: Internal Slots — Engine View
 
----
-
 ## 3.1 Function Object — Internal Structure
 
-A Function Object is **not a plain JS object**.
+একটা Function Object **সাধারণ JS object না**।
 
-Internally (conceptually):
+অভ্যন্তরীণভাবে (conceptually):
 
 ```
 FunctionObject foo
@@ -151,29 +137,26 @@ FunctionObject foo
 └─ [[Prototype]]
 ```
 
-⚠️ These are **internal slots**  
-⚠️ You CANNOT access them in JavaScript  
-⚠️ They exist only inside the engine
-
----
+⚠️ এগুলো **internal slots**
+⚠️ তুমি JavaScript-এ এগুলো access করতে পারবে না
+⚠️ এগুলো শুধুমাত্র engine-এর ভেতরে থাকে
 
 ## 3.2 [[Code]] — What It Really Is
 
-❌ NOT source text  
-❌ NOT a string
+❌ source text না
+❌ string না
 
-`[[Code]]` represents:
+`[[Code]]` represent করে:
+
 - Parsed instructions
 - Bytecode
-- Or JIT-compiled machine code
+- অথবা JIT-compiled machine code
 
-> **"How to execute this function"**
-
----
+> **"কীভাবে এই function execute করতে হবে"**
 
 ## 3.3 [[Environment]] — THIS IS CLOSURES
 
-When the function object is created, the engine stores:
+যখন function object তৈরি হয়, engine store করে:
 
 ```
 [[Environment]] → Lexical Environment of definition
@@ -189,20 +172,19 @@ function foo() {
 }
 ```
 
-Internally:
+অভ্যন্তরীণভাবে:
+
 ```
 foo.[[Environment]] → Global Lexical Environment
 ```
 
-📌 This is why **closures work**  
-📌 This is set **once**  
-📌 This **NEVER changes**
-
----
+📌 এই কারণেই **closures কাজ করে**
+📌 এটা **একবারই** set হয়
+📌 এটা **কখনো বদলায় না**
 
 ## 3.4 [[Call]] — Normal Function Execution
 
-Used when you do:
+ব্যবহার হয় যখন তুমি করো:
 
 ```js
 foo()
@@ -210,34 +192,32 @@ obj.foo()
 foo.call(x)
 ```
 
-The engine performs: `foo.[[Call]]`
+Engine perform করে: `foo.[[Call]]`
 
-Which internally does:
-1. Create execution context
-2. Create `thisBinding`
-3. Assign parameters
-4. Execute `[[Code]]`
+যা অভ্যন্তরীণভাবে করে:
 
----
+1. Execution context তৈরি করে
+2. `thisBinding` তৈরি করে
+3. Parameters assign করে
+4. `[[Code]]` execute করে
 
 ## 3.5 [[Construct]] — Constructor Execution
 
-Used when you do:
+ব্যবহার হয় যখন তুমি করো:
 
 ```js
 new foo()
 ```
 
-The engine performs: `foo.[[Construct]]`
+Engine perform করে: `foo.[[Construct]]`
 
-Which internally does:
-1. Create empty object `{}`
-2. Set `object.__proto__ → foo.prototype`
-3. Bind `this` to that object
-4. Execute function code
-5. Return the object
+যা অভ্যন্তরীণভাবে করে:
 
----
+1. Empty object `{}` তৈরি করে
+2. `object.__proto__ → foo.prototype` set করে
+3. `this`-কে সেই object-এ bind করে
+4. Function code execute করে
+5. Object return করে
 
 ## 3.6 Why Arrow Functions Break `new`
 
@@ -246,35 +226,31 @@ const f = () => {}
 new f() // ❌ TypeError
 ```
 
-Because arrow functions:
-- ❌ do NOT have `[[Construct]]`
-- ✅ only have `[[Call]]`
+কারণ arrow functions:
 
-They are **not constructable**.
+- ❌ `[[Construct]]` নেই
+- ✅ শুধু `[[Call]]` আছে
 
----
+তারা **constructable না**।
 
 <br>
 
 # Part 4: `this` — The Runtime Mystery
 
----
-
 ## 4.1 What is NOT Inside a Function Object (CRITICAL)
 
-🚨 **THERE IS NO `this` INSIDE A FUNCTION OBJECT**
+🚨 **FUNCTION OBJECT-এর ভেতরে কোনো `this` নেই**
 
-The function object does NOT store:
+Function object store করে না:
+
 - ❌ `this`
-- ❌ previous calls
+- ❌ আগের calls
 - ❌ execution state
 - ❌ call history
 
----
-
 ## 4.2 Why `this` Cannot Be Stored
 
-Consider:
+বিবেচনা করো:
 
 ```js
 foo()           // this = undefined (strict) or global
@@ -283,19 +259,17 @@ foo.call(x)     // this = x
 new foo()       // this = new object
 ```
 
-Same function → Different `this`
+একই function → আলাদা `this`
 
-Which one should the function store? 👉 **Impossible**
+কোনটা function store করবে? 👉 **অসম্ভব**
 
-So engine design is:
+তাই engine design হলো:
 
-> **"`this` will be decided ONLY when the function executes."**
-
----
+> **"`this` নির্ধারিত হবে শুধুমাত্র যখন function execute হবে।"**
 
 ## 4.3 Where `this` Actually Lives
 
-`this` lives ONLY here:
+`this` থাকে শুধুমাত্র এখানে:
 
 ```
 ExecutionContext
@@ -304,41 +278,33 @@ ExecutionContext
 └─ thisBinding   ✅
 ```
 
-📌 Execution Context exists **only while code is running**
-
----
+📌 Execution Context থাকে **শুধুমাত্র যখন code চলছে**
 
 <br>
 
 # Part 5: Function Object vs Execution Context
 
----
-
 ## 5.1 Key Differences (LOCK THIS IN)
 
-| Function Object | Execution Context |
-|-----------------|-------------------|
-| Created at **parse time** | Created at **call time** |
-| Lives in **heap** | Lives on **stack** |
-| **Reusable** | **One per call** |
-| Has `[[Code]]` | Has variables |
-| **NO `this`** | Has `thisBinding` |
-
----
+| Function Object                    | Execution Context                     |
+| ---------------------------------- | ------------------------------------- |
+| **parse time**-এ তৈরি   | **call time**-এ তৈরি       |
+| **heap**-এ থাকে         | **stack**-এ থাকে           |
+| **Reusable**                 | **প্রতি call-এ একটা** |
+| `[[Code]]` আছে                | variables আছে                      |
+| **কোনো `this` নেই** | `thisBinding` আছে                |
 
 ## 5.2 Function Object is a Blueprint
 
-Think like this:
+এভাবে চিন্তা করো:
 
-| Concept | Analogy |
-|---------|---------|
-| **Function Object** | Machine (blueprint) |
-| **Execution Context** | Machine running |
+| Concept                     | Analogy             |
+| --------------------------- | ------------------- |
+| **Function Object**   | Machine (blueprint) |
+| **Execution Context** | Machine চলছে    |
 
-You can turn the same machine on 100 times.  
-Each run = new execution context.
-
----
+তুমি একই machine ১০০ বার on করতে পারো।
+প্রতিটা run = নতুন execution context।
 
 ## 5.3 Inner Functions — Important Clarification
 
@@ -350,29 +316,27 @@ function outer() {
 }
 ```
 
-### During compilation:
+### Compilation-এর সময়:
+
 ```
 Heap:
   outer ──► FunctionObject
   inner ──► FunctionObject
 ```
 
-### During execution context creation:
+### Execution context তৈরির সময়:
+
 ```
 Outer Execution Context:
   inner → reference to FunctionObject
 ```
 
-🚨 Inner function object is **NOT recreated**  
-🚨 Scope only stores the **address/reference**
-
----
+🚨 Inner function object **নতুন করে তৈরি হয় না**
+🚨 Scope শুধু **address/reference** store করে
 
 <br>
 
 # Part 6: Complete Flow — AST to Execution
-
----
 
 ## 6.1 The Full Pipeline
 
@@ -387,52 +351,45 @@ Execution → Execution Contexts created
 ```
 
 **Key Points:**
-- AST is **not runtime**
-- Function objects are created **after AST**
-- Execution contexts exist **only during execution**
 
----
+- AST **runtime না**
+- Function objects তৈরি হয় **AST-এর পরে**
+- Execution contexts থাকে **শুধুমাত্র execution-এর সময়**
 
 ## 6.2 Why This Knowledge is Critical
 
-Now you can logically understand:
+এখন তুমি logically বুঝতে পারবে:
 
-| Question | Answer |
-|----------|--------|
-| Why does `this` depend on call-site? | Because `this` is in Execution Context, not Function Object |
-| Why do arrow functions ignore `this`? | They don't have their own `thisBinding` |
-| Why must `bind` create a new function? | To store the bound `this` value |
-| Why don't `call/apply` create new function? | They just set `thisBinding` temporarily |
-| Why does `new` change everything? | It uses `[[Construct]]` instead of `[[Call]]` |
+| Question                                                      | Answer                                                                   |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| কেন `this` call-site-এর উপর depend করে?          | কারণ `this` Execution Context-এ, Function Object-এ না          |
+| কেন arrow functions `this` ignore করে?                | তাদের নিজস্ব `thisBinding` নেই                           |
+| কেন `bind` নতুন function তৈরি করতে হয়?   | bound `this` value store করতে                                      |
+| কেন `call/apply` নতুন function তৈরি করে না? | তারা শুধু`thisBinding` temporarily set করে                  |
+| কেন `new` সবকিছু বদলে দেয়?                | এটা`[[Call]]`-এর বদলে `[[Construct]]` ব্যবহার করে |
 
-**No memorization. Only cause → effect.**
-
----
+**মুখস্থ না। শুধু cause → effect।**
 
 <br>
 
 # Part 7: `this` SET vs BOUND — The Critical Difference
 
----
-
 ## 7.1 Short Answer
 
-| Term | Meaning |
-|------|---------|
-| **"this is SET"** | Happens **automatically** by the engine at call time |
-| **"this is BOUND"** | Happens **manually** by you using `bind` / `call` / `apply` |
+| Term                      | Meaning                                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| **"this is SET"**   | call time-এ engine**automatically** করে                                       |
+| **"this is BOUND"** | তুমি`bind` / `call` / `apply` ব্যবহার করে **manually** করো |
 
-> **Setting = Engine decision**  
+> **Setting = Engine decision**
 > **Binding = Developer control**
-
----
 
 ## 7.2 What Does "this is SET" Mean?
 
-**Setting `this`** means the JavaScript engine decides the value of `this` when a function is executed.
+**`this` Setting** মানে JavaScript engine নির্ধারণ করে `this`-এর value যখন function execute হয়।
 
-- This happens **every time** a function is called
-- You do **nothing manually**
+- এটা হয় **প্রতিবার** function call হলে
+- তুমি **কিছুই manually করো না**
 
 ### Example: Implicit Setting
 
@@ -447,16 +404,15 @@ const obj = {
 obj.foo()  // this = obj
 ```
 
-**What happens internally:**
-1. Engine sees call expression: `obj.foo()`
-2. Creates execution context
+**অভ্যন্তরীণভাবে যা হয়:**
+
+1. Engine call expression দেখে: `obj.foo()`
+2. Execution context তৈরি করে
 3. **Sets** `this = obj`
-4. Executes function
+4. Function execute করে
 
-✅ `this` was **set**, not bound  
-✅ No `bind`, no `call`, no `apply`
-
----
+✅ `this` **set** হয়েছে, bound না
+✅ কোনো `bind` নেই, `call` নেই, `apply` নেই
 
 ### Example: Default Setting
 
@@ -469,31 +425,30 @@ foo()
 ```
 
 **Engine logic:**
-- ❌ not `new`
-- ❌ not `call/apply/bind`
-- ❌ not `obj.method()`
-- ➡️ **default rule applies**
 
-So engine **sets**:
+- ❌ `new` না
+- ❌ `call/apply/bind` না
+- ❌ `obj.method()` না
+- ➡️ **default rule apply হয়**
+
+তাই engine **sets**:
+
 - Sloppy mode → `this = global`
 - Strict mode → `this = undefined`
 
-✅ `this` is set **automatically**
-
----
+✅ `this` **automatically** set হয়
 
 ## 7.3 What Does "this is BOUND" Mean?
 
-**Binding `this`** means you **explicitly force** what `this` should be.
+**`this` Binding** মানে তুমি **explicitly force** করো `this` কী হবে।
 
-You do this using:
+তুমি এটা করো using:
+
 - `bind()`
 - `call()`
 - `apply()`
 
 This **overrides** the engine's default behavior.
-
----
 
 ### Example: `bind()`
 
@@ -507,13 +462,12 @@ boundFoo()  // this = { a: 1 }
 ```
 
 **What happens:**
+
 1. `bind` creates a **new function**
 2. That function **remembers** `{ a: 1 }`
 3. When called → `this` is **forced** to `{ a: 1 }`
 
 ✅ `this` is **bound**, not set by call-site
-
----
 
 ### Example: `call()`
 
@@ -522,25 +476,22 @@ foo.call({ a: 1 })  // this = { a: 1 }
 ```
 
 **Engine behavior:**
+
 1. Create execution context
 2. **Force** `this = { a: 1 }`
 3. Execute immediately
 
 ✅ This is **binding**
 
----
-
 ## 7.4 Core Difference Table
 
-| Aspect | `this` is SET | `this` is BOUND |
-|--------|---------------|-----------------|
-| **Who decides** | JS engine | You |
-| **When** | At call time | Before or during call |
-| **How** | Call-site rules | `bind` / `call` / `apply` |
-| **Automatic** | ✅ Yes | ❌ No |
-| **Can be overridden** | ✅ Yes | ❌ No (bind is permanent) |
-
----
+| Aspect                      | `this` is SET | `this` is BOUND               |
+| --------------------------- | --------------- | ------------------------------- |
+| **Who decides**       | JS engine       | You                             |
+| **When**              | At call time    | Before or during call           |
+| **How**               | Call-site rules | `bind` / `call` / `apply` |
+| **Automatic**         | ✅ Yes          | ❌ No                           |
+| **Can be overridden** | ✅ Yes          | ❌ No (bind is permanent)       |
 
 ## 7.5 Priority Order (Engine Decision Flow)
 
@@ -555,10 +506,9 @@ When a function is called, the engine checks in this order:
 ```
 
 **Key insight:**
+
 - Binding **beats** setting
 - `new` **beats** binding
-
----
 
 ## 7.6 Arrow Functions (Important Exception)
 
@@ -572,13 +522,12 @@ new foo()           // ❌ TypeError
 ```
 
 Arrow functions:
+
 - ❌ do NOT **set** `this`
 - ❌ do NOT **bind** `this`
 - ✅ **capture** `this` lexically (from surrounding scope)
 
 > Arrow functions **opt out** of both setting and binding.
-
----
 
 ## 7.7 One-Line Mental Model
 
@@ -587,8 +536,6 @@ Arrow functions:
 Or even simpler:
 
 > **Setting is automatic. Binding is deliberate.**
-
----
 
 ## 7.8 Interview-Grade Explanation
 
@@ -600,19 +547,13 @@ If an interviewer asks:
 
 > "`this` is **set automatically** by the engine at call time using call-site rules. `bind`, `call`, and `apply` **explicitly bind** `this`, overriding that default behavior."
 
----
-
 <br>
 
 # Part 8: Practice & Checkpoint
 
----
-
 ## 🧠 One-Sentence Mental Model
 
 > **A function is a heap-allocated executable object; `this` is a runtime binding created inside an execution context, never stored in the function itself.**
-
----
 
 ## ✍️ Practice 1 — Explain Out Loud
 
@@ -621,27 +562,24 @@ Answer this question:
 > "What is a function in JavaScript at engine level?"
 
 You MUST mention:
+
 - Object
 - Heap
 - Internal slots (`[[Code]]`, `[[Environment]]`, `[[Call]]`)
 - No `this` stored
 
----
-
 ## ✍️ Practice 2 — True / False
 
-| Statement | Answer |
-|-----------|--------|
-| Function objects are created during execution | ❌ |
-| `this` is part of function definition | ❌ |
-| Arrow functions have `[[Construct]]` | ❌ |
-| Same function can have multiple execution contexts | ✅ |
-| `[[Environment]]` changes on each call | ❌ |
-| Execution context lives on heap | ❌ |
-| `bind` creates a new function | ✅ |
-| `call` creates a new function | ❌ |
-
----
+| Statement                                          | Answer |
+| -------------------------------------------------- | ------ |
+| Function objects are created during execution      | ❌     |
+| `this` is part of function definition            | ❌     |
+| Arrow functions have `[[Construct]]`             | ❌     |
+| Same function can have multiple execution contexts | ✅     |
+| `[[Environment]]` changes on each call           | ❌     |
+| Execution context lives on heap                    | ❌     |
+| `bind` creates a new function                    | ✅     |
+| `call` creates a new function                    | ❌     |
 
 ## ✍️ Practice 3 — SET or BOUND?
 
@@ -658,10 +596,8 @@ const f = obj.foo
 f()
 ```
 
-Was `this` set or bound?  
+Was `this` set or bound?
 👉 **SET** (default setting — `undefined` in strict mode)
-
----
 
 ### Question 2:
 
@@ -670,10 +606,8 @@ const g = obj.foo.bind(obj)
 g()
 ```
 
-Was `this` set or bound?  
+Was `this` set or bound?
 👉 **BOUND** (explicitly via `bind`)
-
----
 
 ### Question 3:
 
@@ -681,10 +615,8 @@ Was `this` set or bound?
 obj.foo()
 ```
 
-Was `this` set or bound?  
+Was `this` set or bound?
 👉 **SET** (implicit setting — `this = obj`)
-
----
 
 ### Question 4:
 
@@ -692,10 +624,8 @@ Was `this` set or bound?
 obj.foo.call({ x: 99 })
 ```
 
-Was `this` set or bound?  
+Was `this` set or bound?
 👉 **BOUND** (explicitly via `call`)
-
----
 
 ## 🔒 Checkpoint — Is This Clear Now?
 
@@ -709,33 +639,27 @@ If these feel obvious, you're DONE:
 - ✅ Arrow functions have no `[[Construct]]`
 - ✅ Setting is automatic, binding is deliberate
 
----
-
 ## 📊 Quick Reference Tables
 
 ### Function Object vs Execution Context
 
-| Concept | Created When | Lives Where | Contains |
-|---------|--------------|-------------|----------|
-| Function Object | Parse time | Heap | `[[Code]]`, `[[Environment]]`, `[[Call]]`, `[[Construct]]` |
-| Execution Context | Call time | Stack | Variables, `thisBinding` |
-| `this` | Call time | Execution Context | Determined by call-site |
-| Closure | Parse time | `[[Environment]]` | Reference to outer scope |
-
----
+| Concept           | Created When | Lives Where         | Contains                                                           |
+| ----------------- | ------------ | ------------------- | ------------------------------------------------------------------ |
+| Function Object   | Parse time   | Heap                | `[[Code]]`, `[[Environment]]`, `[[Call]]`, `[[Construct]]` |
+| Execution Context | Call time    | Stack               | Variables,`thisBinding`                                          |
+| `this`          | Call time    | Execution Context   | Determined by call-site                                            |
+| Closure           | Parse time   | `[[Environment]]` | Reference to outer scope                                           |
 
 ### Complete `this` Reference
 
-| Call Pattern | `this` Value | SET or BOUND |
-|--------------|--------------|--------------|
-| `foo()` | `undefined` / `global` | SET (default) |
-| `obj.foo()` | `obj` | SET (implicit) |
-| `foo.call(x)` | `x` | BOUND (temporary) |
-| `foo.apply(x)` | `x` | BOUND (temporary) |
-| `foo.bind(x)()` | `x` | BOUND (permanent) |
-| `new foo()` | new object | SET (by `new`) |
-| `() => {}` | lexical | NEITHER (captured) |
-
----
+| Call Pattern      | `this` Value             | SET or BOUND       |
+| ----------------- | -------------------------- | ------------------ |
+| `foo()`         | `undefined` / `global` | SET (default)      |
+| `obj.foo()`     | `obj`                    | SET (implicit)     |
+| `foo.call(x)`   | `x`                      | BOUND (temporary)  |
+| `foo.apply(x)`  | `x`                      | BOUND (temporary)  |
+| `foo.bind(x)()` | `x`                      | BOUND (permanent)  |
+| `new foo()`     | new object                 | SET (by `new`)   |
+| `() => {}`      | lexical                    | NEITHER (captured) |
 
 ✅ **Note Complete!**

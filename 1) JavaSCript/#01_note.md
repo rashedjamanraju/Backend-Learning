@@ -72,7 +72,7 @@ Node.js তোমার কোডটাকে একটা **IIFE** দিয়
     // তোমার কোড এখানে থাকে
     const fs = require('fs');
     console.log(__dirname);
-});
+})();
 ```
 
 ### এই wrapper-এর সুবিধা:
