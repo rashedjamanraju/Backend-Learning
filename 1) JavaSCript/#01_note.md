@@ -4,7 +4,41 @@ Node.js যখন একটা file (যেমন `script.js`) execute করে
 
 ---
 
-## ১. Initialization & Environment Setup (পরিবেশ তৈরি)
+# ✅ Learning Order (Best Flow)
+
+## 0. Big Picture (High-Level Overview)
+
+Node.js is a **JavaScript runtime environment** that allows JavaScript to run outside the browser.
+
+Node.js নিজে JavaScript execute করে না। এটা ব্যবহার করে:
+
+- **V8 Engine** → Converts JavaScript to Machine Code
+- **libuv** → Handles async I/O, Event Loop, Thread Pool
+- **C++ Bindings** → Connects JavaScript with OS APIs
+
+> Node.js is **NOT a Virtual Machine**
+> It is a runtime environment.
+
+---
+
+## 1. What happens when we run `node file.js`? (Chronological Flow)
+
+1. Node.js process is created
+2. Memory and main thread are allocated by OS
+3. V8 engine is initialized
+4. libuv is initialized
+   - Event Loop is created
+   - Thread Pool is created (default size = 4)
+5. Global objects are created:
+   - `global`
+   - `process`
+   - `Buffer`
+   - `console`
+   - Timer functions
+
+---
+
+## 2. Initialization & Environment Setup (পরিবেশ তৈরি)
 
 তুমি যখন কমান্ড লাইনে `node script.js` লিখো, তখন Node.js তার ইঞ্জিন (V8) কে অ্যাক্টিভেট করে এবং environment set up করে।
 
@@ -12,7 +46,7 @@ Node.js যখন একটা file (যেমন `script.js`) execute করে
 
 Environment set up করা মানে Node.js তোমার code চালানোর জন্য একটা **"Infrastructure"** বা **"Platform"** তৈরি করে। শুধু JavaScript code থাকলেই হয় না, সেটা চালানোর জন্য কিছু জিনিস দরকার হয় যা Node.js provide করে।
 
-#### ১.১ V8 Instance Create করা
+#### 2.1 V8 Instance Create করা
 
 Node.js প্রথমে Google-এর V8 Engine-এর একটা **instance** তৈরি করে। এটা একটা **"Virtual Machine"**-এর মতো কাজ করে। এটার কাজ হলো তোমার লেখা JavaScript-কে **Machine Code**-এ রূপান্তর করা, যাতে তোমার computer-এর processor সেটা বুঝতে পারে।
 
@@ -24,7 +58,7 @@ V8 হলো Google-এর তৈরি একটি **open-source JavaScript en
 - মেমোরি ম্যানেজমেন্ট করা (Garbage Collection)
 - কোড অপ্টিমাইজেশন করা
 
-#### ১.২ Global Objects Initialize করা
+#### 2.2 Global Objects Initialize করা
 
 Browser-এ যেমন `window` বা `document` থাকে, Node.js-এ সেগুলো থাকে না। Environment setup-এর সময় Node.js কিছু **global object** তৈরি করে:
 
@@ -36,7 +70,219 @@ Browser-এ যেমন `window` বা `document` থাকে, Node.js-এ �
 | `console`    | Console output দেখানোর জন্য                                                                            |
 | `setTimeout` | Timer functions                                                                                                   |
 
-#### ১.৩ Libuv (Event Loop) Start করা
+---
+
+##### 🧠 Global-এ কী থাকে — ৩টা ক্যাটাগরি
+
+###### 1️⃣ **Node-specific Globals**
+
+এগুলো Node.js নিজে যোগ করে:
+
+```
+global
+├── process
+│   ├── argv               → CLI arguments
+│   ├── env                → Environment variables
+│   ├── pid                → Process ID
+│   ├── ppid               → Parent Process ID
+│   ├── platform           → OS name
+│   ├── arch               → CPU architecture
+│   ├── version            → Node version
+│   ├── versions
+│   │   ├── node
+│   │   ├── v8
+│   │   └── uv
+│   ├── cwd()
+│   ├── chdir()
+│   ├── exit()
+│   ├── uptime()
+│   ├── memoryUsage()
+│   └── nextTick()
+│
+├── Buffer
+│   ├── from()
+│   ├── alloc()
+│   ├── allocUnsafe()
+│   ├── isBuffer()
+│   └── byteLength()
+│
+├── console
+│   ├── log()
+│   ├── error()
+│   ├── warn()
+│   ├── info()
+│   ├── table()
+│   ├── time()
+│   └── timeEnd()
+│
+├── setTimeout()
+│   └── Timeout
+│       ├── ref()
+│       ├── unref()
+│       └── hasRef()
+│
+├── setInterval()
+│   └── Timeout
+│       ├── ref()
+│       ├── unref()
+│       └── hasRef()
+│
+├── setImmediate()
+│   └── Immediate
+│       ├── ref()
+│       ├── unref()
+│       └── hasRef()
+│
+├── clearTimeout()
+├── clearInterval()
+└── clearImmediate()
+
+```
+
+✔️ এগুলো Node-এর runtime feature
+
+✔️ require ছাড়াই পাওয়া যায়
+
+---
+
+###### 2️⃣ **JavaScript (ECMAScript) built-in globals**
+
+এগুলো Node বানায় না — **JavaScript ভাষা নিজেই দেয়**
+
+Node শুধু এগুলো রাখে।
+
+```
+global
+├── Object
+├── Array
+├── Function
+├── String
+├── Number
+├── Boolean
+├── Math
+├── Date
+├── JSON
+├── Promise
+├── Error
+├── Map
+├── Set
+├── WeakMap
+└── WeakSet
+```
+
+👉 এগুলো  **Browser-এও থাকে** , Node-এও থাকে
+
+👉 কারণ এগুলো **language feature**
+
+---
+
+###### 3️⃣ **Some utility globals**
+
+ছোট কিন্তু দরকারি:
+
+```
+global
+├── setImmediate
+├── queueMicrotask
+├── atob / btoa (newer Node)
+└── structuredClone
+```
+
+(Version অনুযায়ী কিছু বাড়ে/কমে)
+
+---
+
+##### ❌ Global-এ কী থাকে না (IMPORTANT)
+
+এইগুলা **global object-এ থাকে না** 👇
+
+###### ❌ Core modules
+
+```
+fs
+http
+net
+crypto
+path
+os
+```
+
+❌ কারণ:
+
+```js
+fs.readFile()      // ❌
+require('fs')      // ✅
+```
+
+---
+
+###### ❌ Internal runtime systems
+
+```
+Event Loop
+Thread Pool
+libuv
+```
+
+❌ এগুলো JS object না
+
+❌ এগুলো runtime machinery
+
+---
+
+###### ❌ Module wrapper things
+
+```
+require
+module
+exports
+__dirname
+__filename
+```
+
+❌ এগুলো global না
+
+✔️ এগুলো **per-file wrapper-এ আসে**
+
+---
+
+##### 🧩 সবকিছু একসাথে — FINAL MAP
+
+```
+global
+├── JS built-ins (Object, Array, Promise, ...)
+├── Node globals (process, Buffer, console, timers)
+├── Utilities (queueMicrotask, structuredClone)
+└── ❌ NOT included
+   ├── fs, http, crypto (require needed)
+   ├── Event Loop, Thread Pool (internal)
+   └── require, __dirname (module wrapper)
+```
+
+---
+
+##### 🔑 Golden Rule (এইটা মনে রাখো)
+
+```
+Language feature → global
+Runtime helper → global
+Heavy system API → require
+Internal machinery → invisible
+```
+
+---
+
+##### 🟢 একদম পরিষ্কার উত্তর (Bangla, interview-ready)
+
+> **না, global object-এ শুধু process বা timer না।
+>
+> JavaScript-এর সব built-in object + Node-এর কিছু runtime API global-এ থাকে।
+>
+> কিন্তু core modules (fs, http) আর internal systems (event loop, thread pool) global-এ থাকে না।**
+
+---
+
+#### 2.3 Libuv (Event Loop) Start করা
 
 এটা environment setup-এর **সবচেয়ে গুরুত্বপূর্ণ** part। **Libuv** library-টি চালু হয়, যা Node.js-কে "Asynchronous" হতে সাহায্য করে।
 
@@ -49,7 +295,9 @@ Libuv হলো একটি **C library** যেটা Node.js-এর অ্য
 - **Thread Pool:** ভারী কাজগুলোর জন্য আলাদা থ্রেড (সাধারণত ৪টি thread)
 - **Event Loop:** অ্যাসিনক্রোনাস কাজের সমন্বয়
 
-#### ১.৪ C++ Bindings Connect করা
+---
+
+#### 2.4 C++ Bindings Connect করা
 
 JavaScript দিয়ে সরাসরি তোমার computer-এর **Hard Drive** বা **Network card**-এ access করা যায় না। Environment setup-এর সময় Node.js JavaScript code-কে তার **C++ library-র (C++ Bindings)** সাথে connect করে দেয়, যাতে JavaScript দিয়ে তুমি file system বা internet access করতে পারো।
 
@@ -59,7 +307,7 @@ JavaScript দিয়ে সরাসরি তোমার computer-এর **
 
 ---
 
-## ২. Module Wrapper (Execution Context)
+## 3. Module Wrapper (Execution Context)
 
 Node.js তোমার code-কে সরাসরি execute করে না। সেটাকে একটা **invisible function**-এর ভেতরে ঢুকিয়ে দেয়।
 
@@ -87,7 +335,7 @@ Node.js তোমার কোডটাকে একটা **IIFE** দিয়
 
 ---
 
-## ৩. V8 Engine: Compilation & Execution (The Translator)
+## 4. V8 Engine: Compilation & Execution (The Translator)
 
 V8 ইঞ্জিন JavaScript-কে সরাসরি এক্সিকিউট করে না। এটা কয়েকটি ধাপে কাজ করে:
 
@@ -119,7 +367,7 @@ ADD (দুইটি register যোগ করো)
 
 Processor সেই binary instructions (010101...) গুলো পায় এবং তার ভেতরে থাকা লাখ লাখ tiny switches (transistors) on/off করার মাধ্যমে সেই কাজটা করে ফেলে।
 
-### ধাপ ৩.১: Lexical Analysis (Tokenization)
+### ধাপ 4.1: Lexical Analysis (Tokenization)
 
 প্রথমে কোডকে ছোট ছোট **tokens**-এ ভাঙে:
 
@@ -131,7 +379,7 @@ const x = 5;
 // ['const', 'x', '=', '5', ';']
 ```
 
-### ধাপ ৩.২: Parsing (AST তৈরি)
+### ধাপ 4.2: Parsing (AST তৈরি)
 
 Tokens থেকে **Abstract Syntax Tree (AST)** তৈরি করে। AST হলো কোডের একটা tree structure representation:
 
@@ -143,11 +391,11 @@ Program
         └── Literal (5)
 ```
 
-### ধাপ ৩.৩: Ignition (Interpreter)
+### ধাপ 4.3: Ignition (Interpreter)
 
 V8-এর **Ignition** interpreter AST থেকে **Bytecode** তৈরি করে। Bytecode হলো machine code-এর একটা intermediate form।
 
-### ধাপ ৩.৪: TurboFan (JIT Compiler)
+### ধাপ 4.4: TurboFan (JIT Compiler)
 
 যে কোড বারবার run হয় (hot code), সেটাকে **TurboFan** compiler অপ্টিমাইজড **Machine Code**-এ কনভার্ট করে। এটাকে বলে **Just-In-Time (JIT) Compilation**।
 
@@ -177,7 +425,44 @@ JavaScript Code
 
 ---
 
-## ৪. Event Loop & Thread Pool (Asynchronous Magic)
+## 5. Call Stack
+
+- Executes synchronous code
+- Uses LIFO (Last In, First Out)
+
+**Example:**
+
+```js
+console.log("Hello");
+```
+
+---
+
+## 6. Asynchronous Handling (libuv)
+
+Node.js is single-threaded but non-blocking.
+
+**Async tasks are handled in two ways:**
+
+### A. Thread Pool (libuv)
+
+Used for:
+
+- File system (fs)
+- Crypto
+- Zlib
+- dns.lookup
+
+### B. OS Kernel (Not Thread Pool)
+
+- Network I/O (HTTP, TCP, sockets)
+- Most database operations
+
+> Network I/O is handled by the OS, not the thread pool.
+
+---
+
+## 7. Event Loop & Thread Pool (Asynchronous Magic)
 
 Node.js হচ্ছে **Single Threaded**। মানে মেইন থ্রেডে একসাথে একটি মাত্র কাজ করতে পারে। কিন্তু যদি কোনো বড় কাজ থাকে (যেমন ফাইল রিড করা বা ডাটাবেস অ্যাক্সেস), তখন সেইটা **Libuv**-এর **Thread Pool**-এ পাঠিয়ে দেয়।
 
@@ -236,7 +521,7 @@ Node.js হচ্ছে **Single Threaded**। মানে মেইন থ্�
 
 ---
 
-## ৫. Thread Pool (Libuv)
+## 8. Thread Pool Details (Libuv)
 
 Libuv-এর Thread Pool-এ by default **4টি worker thread** থাকে (UV_THREADPOOL_SIZE দিয়ে বাড়ানো যায়, max 1024)।
 
@@ -254,7 +539,26 @@ process.env.UV_THREADPOOL_SIZE = 8;
 
 ---
 
-## ৬. Final Execution & Exit (কাজ শেষ)
+## 9. C++ Bindings
+
+JavaScript cannot directly access OS resources.
+
+**Execution flow:**
+
+```
+JavaScript
+→ C++ Bindings
+→ OS System Calls
+```
+
+**Examples:**
+
+- `fs.readFile` → Disk access
+- `net` → Network access
+
+---
+
+## 10. Process Exit (Final Execution & Exit)
 
 ### Execution:
 
@@ -272,21 +576,7 @@ Processor code-এর result **output** হিসেবে দেখায় (�
 
 ---
 
-## 💡 Chronological Summary (Best for Revision):
-
-```
-1. Node Start ➔ V8 & Libuv চালু হয়
-2. Wrapping ➔ Code-কে (function(...){ }) দিয়ে ঘেরা হয়
-3. Parsing ➔ Code-কে AST-এ convert করা হয়
-4. JIT Compiling ➔ AST থেকে Machine Code (0, 1) তৈরি হয়
-5. Execution ➔ Call Stack-এ code execute হয়; heavy কাজ Thread Pool-এ যায়
-6. Event Loop ➔ Background কাজের callback গুলোকে Stack-এ পাঠায়
-7. Exit ➔ সব কাজ শেষ হলে process বন্ধ হয়
-```
-
----
-
-## বিস্তারিত উদাহরণ:
+## 11. Detailed Example (Execution Order)
 
 **JavaScript**
 
@@ -334,19 +624,19 @@ console.log("6. শেষ"); // ৪. Call Stack-এ যায়, সাথে �
 
 ---
 
-## সারসংক্ষেপ (Quick Reference):
+## 12. Visual Summary (Architecture Map)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Node.js Architecture                  │
 ├─────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────┐   │
-│  │              Your JavaScript Code                │   │
+│  │              Your JavaScript Code                │
 │  └─────────────────────────────────────────────────┘   │
 │                          ↓                              │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │              Node.js Bindings                    │   │
-│  │         (C++ code connecting JS to C)           │   │
+│  │              Node.js Bindings                    │
+│  │         (C++ code connecting JS to C)           │
 │  └─────────────────────────────────────────────────┘   │
 │                    ↓           ↓                        │
 │  ┌──────────────────┐  ┌──────────────────────────┐    │
@@ -355,14 +645,28 @@ console.log("6. শেষ"); // ৪. Call Stack-এ যায়, সাথে �
 │  └──────────────────┘  └──────────────────────────┘    │
 │                          ↓                              │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │              Operating System                    │   │
+│  │              Operating System                    │
 │  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 💡 Pro-Tip for Interview/Exam:
+## 13. Chronological Summary (Best for Revision)
+
+```
+1. Node Start ➔ V8 & Libuv চালু হয়
+2. Wrapping ➔ Code-কে (function(...){ }) দিয়ে ঘেরা হয়
+3. Parsing ➔ Code-কে AST-এ convert করা হয়
+4. JIT Compiling ➔ AST থেকে Machine Code (0, 1) তৈরি হয়
+5. Execution ➔ Call Stack-এ code execute হয়; heavy কাজ Thread Pool-এ যায়
+6. Event Loop ➔ Background কাজের callback গুলোকে Stack-এ পাঠায়
+7. Exit ➔ সব কাজ শেষ হলে process বন্ধ হয়
+```
+
+---
+
+## 14. Interview One-Liner (Pro-Tip)
 
 যদি কেউ জিজ্ঞেস করে, **"Node.js কেন single-threaded হয়েও fast?"**
 
@@ -370,7 +674,18 @@ console.log("6. শেষ"); // ৪. Call Stack-এ যায়, সাথে �
 
 ---
 
-<br>
+## 15. Ultra-Short Revision Flow
+
+```
+Node start
+→ V8 + libuv initialized
+→ Module wrapper applied
+→ JS → AST → Bytecode → Machine Code
+→ Sync code → Call Stack
+→ Async code → libuv / OS
+→ Event Loop schedules callbacks
+→ Process exits
+```
 
 ---
 
