@@ -26,12 +26,15 @@ Node.js যখন একটা file (যেমন `script.js`) execute করে
 
 ### ১.১ "Environment set up" মানে কী?
 
-Environment set up করা মানে Node.js তোমার code চালানোর জন্য একটা **"Infrastructure"** বা **"Platform"** তৈরি করে। শুধু JavaScript code থাকলেই হয় না, সেটা চালানোর জন্য কিছু জিনিস দরকার হয় যা Node.js provide করে।
+Environment set up করা মানে Node.js তোমার code চালানোর জন্য একটা **"Infrastructure"** বা **"Platform"** তৈরি করে। শুধু JavaScript code থাকলেই হয় না, সেটা চালানোর জন্য কিছু জিনিস (JavaScript চালানোর জন্য **V8 + Event Loop + libuv + OS APIs + Node APIs + Module system + Memory management**) দরকার হয় যা Node.js provide করে।
 
 #### ১.১.১ V8 Engine initialize করা
 
-তুমি যখন `node script.js` চালাও, তখন **Node.js process start হয়** এবং এর সাথে embed করা  **V8 engine initialize হয়** ।
+তুমি যখন `node script.js` চালাও, তখন **Node.js process start হয়** এবং এর সাথে embed করা **V8 engine initialize হয়**। Embed kora keno bole nicer diagram dekhlei clear hoye jabe
 
+<p align="center">
+  <img src="./1770702377916.png" alt="1770702377916" />
+</p>
 Node.js নতুন করে V8 “create” করে না—V8 আগে থেকেই Node.js executable-এর সাথে embed করা থাকে।
 
 V8 initialize হওয়ার সময়:
@@ -307,7 +310,7 @@ Internal machinery → invisible
 >
 > কিন্তু core modules (fs, http) আর internal systems (event loop, thread pool) global-এ থাকে না।**
 
-#### ১.৩ Libuv (Event Loop) Start করা
+#### ১.১.৩ Libuv (Event Loop) Start করা
 
 এটা environment setup-এর **সবচেয়ে গুরুত্বপূর্ণ** part। Libuv event loop initialize হয় এবং
 JavaScript execution শুরু হলে activeভাবে কাজ শুরু করে, যা Node.js-কে "Asynchronous" হতে সাহায্য করে।
@@ -321,15 +324,15 @@ Libuv হলো একটি **C library** যেটা Node.js-এর অ্য
 - **Thread Pool:** ভারী কাজগুলোর জন্য আলাদা থ্রেড (সাধারণত ৪টি thread)
 - **Event Loop:** অ্যাসিনক্রোনাস কাজের সমন্বয়
 
-#### ১.৪ C++ Bindings Connect করা
+#### ১.১.৪ C++ Bindings Connect করা
 
 JavaScript দিয়ে সরাসরি তোমার computer-এর **Hard Drive** বা **Network card**-এ access করা যায় না। Environment setup-এর সময় Node.js JavaScript code-কে তার **C++ library-র (C++ Bindings)** সাথে connect করে দেয়, যাতে JavaScript দিয়ে তুমি file system বা internet access করতে পারো।
 
-### সহজ কথায়:
+##### সহজ কথায়:
 
 > Environment setup মানে একটা **"কারখানা"** তৈরি করা। V8 হচ্ছে engine, Libuv হচ্ছে কাজের নিয়ম, আর Module Wrapper হচ্ছে কাঁচামাল processing-এর জায়গা।
 
-### ২. Module Wrapping & V8 Compilation (Deep Dive)
+## ২. Module Wrapping & V8 Compilation (Deep Dive)
 
 Node.js যখন কোনো ফাইল লোড করে, তখন পর্দার আড়ালে নিচের ধাপগুলো একে একে ঘটে:
 
@@ -402,8 +405,6 @@ Processor execute করে  **V8-generated machine code** ,
 JavaScript না
 
 Processor V8-generated machine code theke  binary instructions (010101...) গুলো পায় এবং তার ভেতরে থাকা লাখ লাখ tiny switches (transistors) on/off করার মাধ্যমে সেই কাজটা করে ফেলে।
-
-
 
 ### ধাপ ৩.১: Lexical Analysis (Tokenization)
 
@@ -491,7 +492,7 @@ V8-এর **Ignition** interpreter AST থেকে **Bytecode** তৈরি �
 
 যে কোড বারবার run হয় (hot code), সেটাকে **TurboFan** compiler অপ্টিমাইজড **Machine Code**-এ কনভার্ট করে। এটাকে বলে **Just-In-Time (JIT) Compilation**।
 
-### Complete Flow:
+Complete Flow:
 
 ```md
 JavaScript Code
@@ -574,7 +575,7 @@ V8 দেখে:
 
 📌 **এই মুহূর্ত থেকেই actual execution শুরু হয়**
 
-## 🧠 Important Clarification (Exam-safe)
+### 🧠 Important Clarification (Exam-safe)
 
 - `exports`, `require`, `module`, `__filename`, `__dirname`
   - ❌ global না
@@ -585,7 +586,7 @@ V8 দেখে:
   - ✅ **V8 বানায়**
   - ✅ function call detect করলেই
 
-## 🟢 One-Line Final Version (Interview-Ready)
+### 🟢 One-Line Final Version (Interview-Ready)
 
 > Wrapper function call করার আগে Node.js runtime নিজে
 >
@@ -746,25 +747,25 @@ console.log("6. শেষ"); // ৪. Call Stack-এ যায়, সাথে �
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Node.js Architecture                  │
+│                    Node.js Architecture                 │
 ├─────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────┐   │
-│  │              Your JavaScript Code                │   │
-│  └─────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │              Your JavaScript Code               │    │
+│  └─────────────────────────────────────────────────┘    │
 │                          ↓                              │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │              Node.js Bindings                    │   │
-│  │         (C++ code connecting JS to C)           │   │
-│  └─────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │              Node.js Bindings                   │    │
+│  │         (C++ code connecting JS to C)           │    │
+│  └─────────────────────────────────────────────────┘    │
 │                    ↓           ↓                        │
-│  ┌──────────────────┐  ┌──────────────────────────┐    │
-│  │    V8 Engine     │  │        Libuv             │    │
-│  │  (JS → Machine)  │  │  (Async I/O, Thread Pool)│    │
-│  └──────────────────┘  └──────────────────────────┘    │
+│  ┌──────────────────┐  ┌──────────────────────────┐     │
+│  │    V8 Engine     │  │        Libuv             │     │
+│  │  (JS → Machine)  │  │  (Async I/O, Thread Pool)│     │
+│  └──────────────────┘  └──────────────────────────┘     │
 │                          ↓                              │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │              Operating System                    │   │
-│  └─────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │              Operating System                   │    │
+│  └─────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -831,7 +832,7 @@ for(let i=0; i<1000; i++) add(i, i+1);
 
 হ্যাঁ, ফাংশন বারবার ব্যবহারের জন্যই তৈরি, কিন্তু V8 বুদ্ধিমান। সে শুধু "বারবার ব্যবহৃত" এবং "একই ধরনের ডেটা (Stable Types)" নিয়ে কাজ করা ফাংশনগুলোকেই TurboFan দিয়ে মেশিন কোড বানায়।
 
-## 🔹 “V8 isolate তৈরি হয়” — এটা আসলে কী বোঝায়? (NOTE VERSION)
+## 🔹 “V8 isolate তৈরি হয়” — এটা আসলে কী বোঝায়? (NOTE VERSION) (Extra)
 
 ### 🟢 সহজ ভাষায় সংজ্ঞা
 
@@ -1020,11 +1021,12 @@ LexicalEnvironment {
 
 ```javascript
 VariableEnvironment {
-  EnvironmentRecord
+  EnvironmentRecord,
+  outer
 }
 ```
 
-**Note:** এখানে কোনো `outer` নেই; chaining শুধুমাত্র LexicalEnvironment-এর মাধ্যমে হয়।
+**Note:** স্পেসিফিকেশন অনুযায়ী `VariableEnvironment`-এরও একটি `outer` থাকে, কিন্তু জাভাস্ক্রিপ্ট ইঞ্জিন ভ্যারিয়েবল খোঁজার সময় (Lookup Algorithm) সবসময় **`LexicalEnvironment`** চেইন ব্যবহার করে
 
 ---
 
@@ -1129,9 +1131,20 @@ let b = 20
 **Step 1 — New Execution Context created**
 
 ```javascript
-LexicalEnvironment {
-  EnvironmentRecord: {}
-}
+
+Function_ExecutionContext (sum)
+├── LexicalEnvironment {
+|  	EnvironmentRecord,
+| 	Outer -> parent
+|   }
+|
+├── VariableEnvironment{
+|	EnvironmentRecord,
+|	Outer -> parent
+|   }
+|
+└── thisBinding
+
 ```
 
 **Step 2 — Parameters stored**
@@ -1146,10 +1159,24 @@ b → 20
 Result:
 
 ```javascript
-EnvironmentRecord {
-  a: 10,
-  b: 20
-}
+
+Function_ExecutionContext (sum)
+├── LexicalEnvironment {
+|  	EnvironmentRecord {
+|		  a: 10, 
+|		  b: 20  
+|	},
+|
+| 	Outer -> parent
+|   }
+|
+├── VariableEnvironment{
+|   	EnvironmentRecord,
+|
+| 	Outer -> parent
+|   }
+|
+└── thisBinding
 ```
 
 ### Important Behavior
@@ -1187,9 +1214,37 @@ function test() {
 
 Parameters **LexicalEnvironment**-এ থাকে, VariableEnvironment-এ না
 
-কারণ: এরা `let`-এর মতো block scoped
+কারণ: এরা `let`-এর মতো block scoped.
 
----
+**IMPORTANT**:
+
+* ২. **Parameters এর ক্ষেত্রে:** ফাংশন কল করার সাথে সাথে (Execution Context তৈরির সময় (creation phase e)) ইঞ্জিন প্যারামিটারগুলোকে **Arguments** দিয়ে ভরে ফেলে। যদি আর্গুমেন্ট না থাকে, তবে ইঞ্জিন **শুরুতেই** সেটিকে `undefined` দিয়ে দেয়।
+
+### আপনার জন্য একটি "Proof" উদাহরণ (যা দিয়ে ভুলটি বুঝবেন):
+
+**JavaScript**
+
+```javascript
+// ১. লেট (let) এর ক্ষেত্রে:
+function testLet() {
+  try {
+    console.log(x); // এখানে 'x' মেমোরিতে আছে, কিন্তু empty (TDZ)
+  } catch (e) {
+    console.log("let Error:", e.message); 
+  }
+  let x; // কোড এই লাইনে আসলে x = undefined হয়।
+}
+
+// ২. প্যারামিটারের ক্ষেত্রে:
+function testParam(p) {
+  // এখানে 'p' অলরেডি undefined হয়ে বসে আছে। 
+  // কোনো TDZ পিরিয়ড নেই কারণ ফাংশন বডিতে ঢোকার আগেই ইঞ্জিন p = undefined সেট করেছে।
+  console.log("Param Value:", p); 
+}
+
+testLet();
+testParam(); // আর্গুমেন্ট না দিলেও p সরাসরি undefined, কোনো এরর নেই।
+```
 
 ## 10. Part 2 — Catch Variables
 
